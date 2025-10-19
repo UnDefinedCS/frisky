@@ -9,8 +9,10 @@ add_executable(frisky ${SRC} ${HPP} ${GAME_SRC} ${GAME_HPP})
 target_compile_options(frisky PRIVATE
     -static-libgcc
     -static-libstdc++
+    -static
     -mthreads
 )
+target_link_options(frisky PRIVATE -static)
 
 # --- Raylib include and library paths ---
 set(RAYLIB_DIR /opt/raylib-5.5_win64_mingw-w64)
