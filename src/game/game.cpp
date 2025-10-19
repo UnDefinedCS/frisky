@@ -3,31 +3,22 @@
 */
 
 #include "game.hpp"
-
 #include <cstdlib>
 #include <ctime>
 #include <algorithm>
 #include <random>
 #include <iostream>
 
+// Tetromino shapes
 static const std::array<std::array<Vec2i,4>,7> SHAPES = {{
-    // I
-    {{ {0,1}, {1,1}, {2,1}, {3,1} }},
-    // O
-    {{ {1,0}, {2,0}, {1,1}, {2,1} }},
-    // T
-    {{ {1,0}, {0,1}, {1,1}, {2,1} }},
-    // S
-    {{ {1,0}, {2,0}, {0,1}, {1,1} }},
-    // Z
-    {{ {0,0}, {1,0}, {1,1}, {2,1} }},
-    // J
-    {{ {0,0}, {0,1}, {1,1}, {2,1} }},
-    // L
-    {{ {2,0}, {0,1}, {1,1}, {2,1} }}
+    {{ {0,1}, {1,1}, {2,1}, {3,1} }}, // I
+    {{ {1,0}, {2,0}, {1,1}, {2,1} }}, // O
+    {{ {1,0}, {0,1}, {1,1}, {2,1} }}, // T
+    {{ {1,0}, {2,0}, {0,1}, {1,1} }}, // S
+    {{ {0,0}, {1,0}, {1,1}, {2,1} }}, // Z
+    {{ {0,0}, {0,1}, {1,1}, {2,1} }}, // J
+    {{ {2,0}, {0,1}, {1,1}, {2,1} }}  // L
 }};
-
-// -------------------------------------------------------------------
 
 Game::Game(int width, int height)
 : screenWidth(width), screenHeight(height)
@@ -49,8 +40,6 @@ Game::~Game() {
     CloseWindow();
 }
 
-// -------------------------------------------------------------------
-
 Piece Game::MakePiece(TetrominoType t) {
     Piece p;
     p.type = t;
@@ -59,8 +48,6 @@ Piece Game::MakePiece(TetrominoType t) {
     p.position = {BOARD_WIDTH/2 - 2,0};
     return p;
 }
-
-// -------------------------------------------------------------------
 
 void Game::SpawnPiece() {
     m_current = m_next;
@@ -75,17 +62,11 @@ void Game::SpawnPiece() {
     }
 }
 
-// -------------------------------------------------------------------
-
 bool Game::CanPlace(const Piece& p) const {
     for (auto b : p.blocks) {
         int rx = b.x, ry = b.y;
         int r = (p.rotation % 4 + 4) % 4;
-        for(int i=0;i<r;++i){
-            int nx = 3 - ry;
-            int ny = rx;
-            rx = nx; ry = ny;
-        }
+        for(int i=0;i<r;++i){ int nx=3-ry; int ny=rx; rx=nx; ry=ny; }
         int x = p.position.x + rx;
         int y = p.position.y + ry;
         if (x<0 || x>=BOARD_WIDTH || y<0 || y>=BOARD_HEIGHT) return false;
@@ -98,11 +79,7 @@ void Game::PlacePiece(const Piece& p) {
     for (auto b : p.blocks) {
         int rx = b.x, ry = b.y;
         int r = (p.rotation % 4 + 4) % 4;
-        for(int i=0;i<r;++i){
-            int nx = 3 - ry;
-            int ny = rx;
-            rx = nx; ry = ny;
-        }
+        for(int i=0;i<r;++i){ int nx=3-ry; int ny=rx; rx=nx; ry=ny; }
         int x = p.position.x + rx;
         int y = p.position.y + ry;
         if(x>=0 && x<BOARD_WIDTH && y>=0 && y<BOARD_HEIGHT)
@@ -131,8 +108,6 @@ void Game::ClearLines() {
     }
 }
 
-// -------------------------------------------------------------------
-
 void Game::RotatePiece(Piece& p, int dir) {
     int oldRot = p.rotation;
     p.rotation = (p.rotation + dir)&3;
@@ -155,14 +130,10 @@ void Game::HardDrop() {
     }
 }
 
-// -------------------------------------------------------------------
-
 void Game::ResetBoard() {
     m_board.fill(-1);
     m_score=0; m_linesCleared=0; m_level=1;
 }
-
-// -------------------------------------------------------------------
 
 void Game::HandleInput() {
     if(IsKeyPressed(KEY_LEFT)){
@@ -178,8 +149,6 @@ void Game::HandleInput() {
     if(IsKeyPressed(KEY_SPACE)) HardDrop();
 }
 
-// -------------------------------------------------------------------
-
 void Game::Update() {
     static float timer=0.f;
     timer += GetFrameTime();
@@ -194,8 +163,6 @@ void Game::Update() {
     }
 }
 
-// -------------------------------------------------------------------
-
 Color ColorForType(TetrominoType t){
     switch(t){
         case TetrominoType::I: return BLUE;
@@ -209,13 +176,18 @@ Color ColorForType(TetrominoType t){
     }
 }
 
-// -------------------------------------------------------------------
+void Game::DrawPiece(const Piece& p, Vec2i origin){
+    for(auto b:p.blocks){
+        int rx=b.x, ry=b.y;
+        int r=(p.rotation%4+4)%4;
+        for(int i=0;i<r;++i){ int nx=3-ry; int ny=rx; rx=nx; ry=ny; }
+        DrawRectangle(origin.x + (p.position.x + rx)*BLOCK_SIZE,
+                      origin.y + (p.position.y + ry)*BLOCK_SIZE,
+                      BLOCK_SIZE-1, BLOCK_SIZE-1, ColorForType(p.type));
+    }
+}
 
-void Game::Draw() {
-    BeginDrawing();
-    ClearBackground(BLACK);
-
-    // draw board
+void Game::DrawBoard(){
     for(int y=0;y<BOARD_HEIGHT;++y)
         for(int x=0;x<BOARD_WIDTH;++x){
             int v = m_board[y*BOARD_WIDTH+x];
@@ -224,16 +196,45 @@ void Game::Draw() {
                           m_boardOrigin.y + y*BLOCK_SIZE,
                           BLOCK_SIZE-1, BLOCK_SIZE-1, c);
         }
+}
 
-    // draw falling piece
-    for(auto b:m_current.blocks){
-        int rx=b.x, ry=b.y;
-        int r=(m_current.rotation%4+4)%4;
-        for(int i=0;i<r;++i){ int nx=3-ry; int ny=rx; rx=nx; ry=ny; }
-        DrawRectangle(m_boardOrigin.x + (m_current.position.x + rx)*BLOCK_SIZE,
-                      m_boardOrigin.y + (m_current.position.y + ry)*BLOCK_SIZE,
-                      BLOCK_SIZE-1, BLOCK_SIZE-1, ColorForType(m_current.type));
+void Game::DrawNextPiece(){
+    Piece preview = m_next;
+    preview.position = {0,0}; // draw at origin
+    DrawPiece(preview, m_previewOrigin);
+    DrawText("Next:", m_previewOrigin.x, m_previewOrigin.y-30, m_fontSize, m_textColor);
+}
+
+void Game::DrawHoldPiece(){
+    if(m_hold.type != TetrominoType::None){
+        Piece hold = m_hold;
+        hold.position = {0,0};
+        DrawPiece(hold, m_holdOrigin);
+        DrawText("Hold:", m_holdOrigin.x, m_holdOrigin.y-30, m_fontSize, m_textColor);
     }
+}
+
+void Game::DrawStats(){
+    std::string scoreText = "Score: " + std::to_string(m_score);
+    std::string linesText = "Lines: " + std::to_string(m_linesCleared);
+    std::string levelText = "Level: " + std::to_string(m_level);
+
+    DrawText(scoreText.c_str(), m_previewOrigin.x, m_previewOrigin.y + 120, m_fontSize, m_textColor);
+    DrawText(linesText.c_str(), m_previewOrigin.x, m_previewOrigin.y + 150, m_fontSize, m_textColor);
+    DrawText(levelText.c_str(), m_previewOrigin.x, m_previewOrigin.y + 180, m_fontSize, m_textColor);
+}
+
+// -------------------------------------------------------------------
+
+void Game::Draw() {
+    BeginDrawing();
+    ClearBackground(BLACK);
+
+    DrawBoard();
+    DrawPiece(m_current, m_boardOrigin);
+    DrawNextPiece();
+    DrawHoldPiece();
+    DrawStats();
 
     EndDrawing();
 }

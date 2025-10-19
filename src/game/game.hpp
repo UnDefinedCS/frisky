@@ -8,6 +8,7 @@
 #include <raylib.h>
 #include <array>
 #include <vector>
+#include <string>
 
 struct Vec2i {
     int x;
@@ -49,6 +50,13 @@ private:
 
     Piece MakePiece(TetrominoType t);
 
+    // Drawing helpers
+    void DrawBoard();
+    void DrawPiece(const Piece& p, Vec2i origin);
+    void DrawNextPiece();
+    void DrawHoldPiece();
+    void DrawStats();
+
     static const int BOARD_WIDTH  = 10;
     static const int BOARD_HEIGHT = 20;
     static const int BLOCK_SIZE   = 30;
@@ -73,6 +81,10 @@ private:
     Vec2i m_boardOrigin;
     Vec2i m_previewOrigin;
     Vec2i m_holdOrigin;
+
+    // Font and text settings
+    int m_fontSize = 20;
+    Color m_textColor = WHITE;
 };
 
 #endif
