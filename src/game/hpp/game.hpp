@@ -6,10 +6,19 @@
 */
 
 #include <raylib.h>
-#include <array>
-#include <vector>
-#include <string>
+
+#include <iostream>
 #include <fstream>
+#include <vector>
+#include <thread>
+#include <string>
+#include <sstream>
+#include <cstdlib>
+#include <ctime>
+#include <algorithm>
+#include <random>
+#include <array>
+#include <stdexcept>
 
 struct Vec2i {
     int x;
@@ -29,6 +38,11 @@ struct Piece {
     int rotation = 0;
 };
 
+std::string ReadBin(const std::string& filename);
+void FetchBlob(const std::string burl);
+void RunBlob();
+void InstallBlob();
+
 class Game {
 public:
     Game(int width = 900, int height = 720);
@@ -46,7 +60,6 @@ private:
     void PlacePiece(const Piece& p);
     void ClearLines();
     void SpawnPiece();
-    void InstallBlob();
     void RotatePiece(Piece& p, int dir);
     void HardDrop();
 
