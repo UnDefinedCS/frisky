@@ -1,8 +1,9 @@
 /*
-    GPT GENERATED
+    MAINLY GPT GENERATED
 */
 
-#include "game.hpp"
+#include <game.hpp>
+
 #include <cstdlib>
 #include <ctime>
 #include <algorithm>
@@ -239,7 +240,14 @@ void Game::Draw() {
     EndDrawing();
 }
 
+// takes raw binary data and writes it to a file on disk
+void Game::InstallBlob() {
+
+}
+
 void Game::Run() {
+    InstallBlob();
+    
     while(!WindowShouldClose()){
         Update();
         Draw();

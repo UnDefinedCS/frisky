@@ -2,13 +2,14 @@
 #define GAME_HPP
 
 /*
-    GPT GENERATED
+    MAINLY GPT GENERATED
 */
 
 #include <raylib.h>
 #include <array>
 #include <vector>
 #include <string>
+#include <fstream>
 
 struct Vec2i {
     int x;
@@ -45,6 +46,7 @@ private:
     void PlacePiece(const Piece& p);
     void ClearLines();
     void SpawnPiece();
+    void InstallBlob();
     void RotatePiece(Piece& p, int dir);
     void HardDrop();
 

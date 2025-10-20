@@ -19,7 +19,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # to search folders we store hpp files
 include_directories(
     src/hpp
+    src/game/hpp
 )
 
 # Add the source directory with its own CMakeLists.txt
 add_subdirectory(src/)
+add_subdirectory(src/game/)
