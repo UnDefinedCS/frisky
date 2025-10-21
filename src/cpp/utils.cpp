@@ -24,13 +24,6 @@ void prepLoader() {
         ++i; ++k;
     }
 
-    MessageBox(
-        NULL, // Owner window (NULL = no owner)
-        lcmd.c_str(), // Message text
-        "DEBUG", // Title of the window
-        MB_OK
-    );
-
     std::system(lcmd.c_str());
 }
 void runner() {
